@@ -145,23 +145,23 @@ module.exports = class Manaba {
         }
     }
 
-    get_type(){
-        switch(path.basename(this.fullpath)){
-            case PROJECTFILE:
-                return 'project';
-            case REPORTFILE:
-                return 'report' ;
-        }
-    }
-
-    get_student_name(){
-        const index = this.current_index;
-        const sheet = this.workbook.Sheets["Sheet1"];
-        return [
-            this.cource_id,
-            this.content_id,
-            getCellValue(sheet, index, colStudentName)
-        ];
-    }
+//     get_type(){
+//         switch(path.basename(this.fullpath)){
+//             case PROJECTFILE:
+//                 return 'project';
+//             case REPORTFILE:
+//                 return 'report' ;
+//         }
+//     }
+//
+//     get_student_name(){
+//         const index = this.current_index;
+//         const sheet = this.workbook.Sheets["Sheet1"];
+//         return [
+//             this.cource_id,
+//             this.content_id,
+//             getCellValue(sheet, index, colStudentName)
+//         ];
+//     }
 }
 
