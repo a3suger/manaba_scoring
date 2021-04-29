@@ -1,0 +1,19 @@
+{
+  "name": "manaba_scoring",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "run": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "electron": "^12.0.5",
+    "electron-pdf-window": "^1.0.12",
+    "electron-store": "^8.0.0",
+    "xlsx": "^0.16.9"
+  }
+}

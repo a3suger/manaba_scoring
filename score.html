@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" type="text/css" href="score.css">
+</head>
+<body>
+<div class="form">
+    <div class="form_main">
+        <form id="form">
+            <div id="input_pane">
+                <div id="student_info">
+                    <span id="student_id">学籍番号</span>
+                    <span id="student_name">姓名</span>
+                    <span id="student_status">状態</span>
+                </div>
+            </div>
+            <div id="input_part_score">
+                <p><label for="student_score">点数</label><input type="text" id="student_score"/></p>
+                <p><label for="student_mark">評価</label><input type="text" id="student_mark"/></p>
+            </div>
+            <div id="input_part_comment">
+                <p><label for="student_comment">講評</label></p>
+                <p><textarea id="student_comment" rows=10></textarea></p>
+            </div>
+            <div>
+                <button id="button_next" type=button onclick="up()">次</button>
+                <button type=button onclick="down()">戻</button>
+                <label for="range">位置</label><input type="range" id="range" min="0" max="100" value="0" step="1" oninput="document.getElementById('range_value').innerText=this.value" onchange="go()"/>
+                <span id="range_value">0</span>
+            </div>
+        </form>
+    </div>
+    <div id="form_panel">
+    </div>
+</div>
+</body>
+<script src="score.js"></script>
+</html>

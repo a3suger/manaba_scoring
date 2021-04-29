@@ -1,0 +1,22 @@
+div#student_info {
+    display: flex;
+}
+div#input_part_score {
+    display: flex;
+    justify-content: space-between;
+}
+div#input_part_comment {
+    display: flex;
+}
+div#student_comment {
+    width : 100% ;
+}
+div#input_pane {
+    display: block;
+}
+div#form_panel {
+    width: 400px;
+    height: 400px;
+    overflow-y: scroll;
+    resize: both;
+}
