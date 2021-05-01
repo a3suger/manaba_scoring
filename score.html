@@ -6,6 +6,7 @@
     <link rel="stylesheet" type="text/css" href="score.css">
 </head>
 <body>
+<div id="search"></div>
 <div class="form">
     <div class="form_main">
         <form id="form">
@@ -16,6 +17,7 @@
                     <span id="student_status">状態</span>
                 </div>
             </div>
+            <span id="input_part">
             <div id="input_part_score">
                 <p><label for="student_score">点数</label><input type="text" id="student_score"/></p>
                 <p><label for="student_mark">評価</label><input type="text" id="student_mark"/></p>
@@ -24,6 +26,7 @@
                 <p><label for="student_comment">講評</label></p>
                 <p><textarea id="student_comment" rows=10></textarea></p>
             </div>
+            </span>
             <div>
                 <button id="button_next" type=button onclick="up()">次</button>
                 <button type=button onclick="down()">戻</button>

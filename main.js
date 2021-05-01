@@ -1,4 +1,4 @@
-const {app, Menu, MenuItem, dialog, ipcMain, BrowserWindow, shell} = require('electron')
+const {app, Menu, MenuItem, dialog, ipcMain, ipcRenderer, BrowserWindow, shell} = require('electron')
 const path = require('path');
 const fs = require('fs');
 const Store = require('electron-store');
@@ -20,15 +20,14 @@ const DEFAULT_POS = {
 }
 
 
-
 // https://qiita.com/umamichi/items/8781e426e9cd4a88961b
 
 let pdf_win;
 const PDFWindow = require('electron-pdf-window');
 
-function createPDFWindow(){
-    if(pdf_win===undefined) {
-        const pos  = store.get('pdf.window.pos') || [DEFAULT_POS.x, DEFAULT_POS.y];
+function createPDFWindow() {
+    if (pdf_win === undefined) {
+        const pos = store.get('pdf.window.pos') || [DEFAULT_POS.x, DEFAULT_POS.y];
         const size = store.get('pdf.window.size') || [DEFAULT_SIZE.width, DEFAULT_SIZE.height];
         pdf_win = new PDFWindow({
             width: size[0],
@@ -42,7 +41,7 @@ function createPDFWindow(){
             console.log(`fail open ${id} ${str} ${decodeURI(vurl)}`);
         })
 
-        pdf_win.on('close',(e)=>{
+        pdf_win.on('close', (e) => {
             store.set('pdf.window.pos', pdf_win.getPosition())  // ウィンドウの座標を記録
             store.set('pdf.window.size', pdf_win.getSize())     // ウィンドウのサイズを記録
             pdf_win.hide();
@@ -62,49 +61,67 @@ function app_main() {
     mainMenu.append(new MenuItem({role: "appMenu", submenu: appMenu}));
 
     const fileMenu = new Menu();
-    fileMenu.append(new MenuItem({label: 'Open',  accelerator: 'CommandOrControl+O', click: (m,w,e) => {
-        if((pdf_win !== undefined)&&(w === pdf_win)) return ;
-        if( w === undefined ){createMainWindow(null)}
-        else{selectfile(w)}
-        }}));
-    fileMenu.append(new MenuItem({role: 'recentdocuments',submenu:[new MenuItem({role:'clearrecentdocuments'})]}));
-    fileMenu.append(new MenuItem({role: 'close',click:()=> {
-        const win = BrowserWindow.getFocusedWindow();
-        if(win === undefined) return ;
-        if(win === pdf_win) force_hide(win);
-        win.close();
-    }}));
+    fileMenu.append(new MenuItem({
+        label: 'Open', accelerator: 'CommandOrControl+O', click: (m, w, e) => {
+            if ((pdf_win !== undefined) && (w === pdf_win)) return;
+            if (w === undefined) {
+                createMainWindow(null)
+            } else {
+                selectfile(w)
+            }
+        }
+    }));
+    fileMenu.append(new MenuItem({role: 'recentdocuments', submenu: [new MenuItem({role: 'clearrecentdocuments'})]}));
+    fileMenu.append(new MenuItem({
+        role: 'close', click: () => {
+            const win = BrowserWindow.getFocusedWindow();
+            if (win === undefined) return;
+            if (win === pdf_win) force_hide(win);
+            win.close();
+        }
+    }));
     mainMenu.append(new MenuItem({role: 'fileMenu', submenu: fileMenu}));
 
     const editMenu = new Menu();
     editMenu.append(new MenuItem({role: 'cut'}));
     editMenu.append(new MenuItem({role: 'copy'}));
     editMenu.append(new MenuItem({role: 'paste'}));
+    editMenu.append(new MenuItem({
+        label: 'search', accelerator: 'CommandOrControl+f',  click: () => {
+            const win = BrowserWindow.getFocusedWindow();
+            search_main_opneDialog(win.webContents)
+        }
+    }));
     editMenu.append(new MenuItem({type: "separator"}));
 
-    mainMenu.append(new MenuItem({role: 'editMenu',submenu: editMenu}));
+    mainMenu.append(new MenuItem({role: 'editMenu', submenu: editMenu}));
 
     const winMenu = new Menu();
     winMenu.append(new MenuItem({'role': 'minimize'}));
-    winMenu.append(new MenuItem({label:'Focus Next',accelerator:'Cmd+N',click:()=>{
-         console.info('focus next')
-         var ws = BrowserWindow.getAllWindows();
-         for(var i = 0 ; i< ws.length ; i ++){
-             if(ws[i].isFocused()) {
-                 ws[i].blur();
-                 break;
-             }
-         }
-    }}));
-    winMenu.append(new MenuItem({label:'Reload Sub-window',accelerator:'Cmd+R',click:()=>{
-        const win = BrowserWindow.getFocusedWindow();
-        if(win !== null){
-            win.closeFilePreview();
-            open_student_file(win);
+    winMenu.append(new MenuItem({
+        label: 'Focus Next', accelerator: 'Cmd+N', click: () => {
+            console.info('focus next')
+            var ws = BrowserWindow.getAllWindows();
+            for (var i = 0; i < ws.length; i++) {
+                if (ws[i].isFocused()) {
+                    ws[i].blur();
+                    break;
+                }
+            }
         }
-    }}));
-    winMenu.append(new MenuItem({label:'open original',click:(m,w,e) => {
-        open_original_file(w);
+    }));
+    winMenu.append(new MenuItem({
+        label: 'Reload Sub-window', accelerator: 'Cmd+R', click: () => {
+            const win = BrowserWindow.getFocusedWindow();
+            if (win !== null) {
+                win.closeFilePreview();
+                open_student_file(win);
+            }
+        }
+    }));
+    winMenu.append(new MenuItem({
+        label: 'open original', click: (m, w, e) => {
+            open_original_file(w);
         }
     }));
     winMenu.append(new MenuItem({type: "separator"}));
@@ -113,9 +130,11 @@ function app_main() {
 
     const debugMenu = new Menu();
     debugMenu.append(new MenuItem({role: 'toggleDevTools'}));
-    debugMenu.append(new MenuItem({label:'Dialog',click:()=>{
-        dialog.showOpenDialog({defaultPath:"/"})
-        }}));
+    debugMenu.append(new MenuItem({
+        label: 'Dialog', click: () => {
+            dialog.showOpenDialog({defaultPath: "/"})
+        }
+    }));
     mainMenu.append(new MenuItem({label: 'debug', submenu: debugMenu}));
 
     Menu.setApplicationMenu(mainMenu);
@@ -136,8 +155,8 @@ function app_main() {
     createMainWindow(null);
 }
 
-function createMainWindow(filepath){
-    const pos  = store.get('main.window.pos') || [DEFAULT_POS.x, DEFAULT_POS.y];
+function createMainWindow(filepath) {
+    const pos = store.get('main.window.pos') || [DEFAULT_POS.x, DEFAULT_POS.y];
     const size = store.get('main.main.size') || [DEFAULT_SIZE.width, DEFAULT_SIZE.height];
 
     const win = new BrowserWindow({
@@ -152,33 +171,35 @@ function createMainWindow(filepath){
         }
     });
     // search_win = searchInPage(win);
-    if(filepath == null) {
+    if (filepath == null) {
         selectfile(win, {
             'callback': () => {
                 win.close()
             }
         });
-    }else{
-        showScoreWindow(win,filepath)
+    } else {
+        showScoreWindow(win, filepath)
     }
-    win.on('close',(e)=>{
+    win.on('close', (e) => {
         store.set('main.window.pos', win.getPosition())  // ウィンドウの座標を記録
         store.set('main.window.size', win.getSize())     // ウィンドウのサイズを記録
         force_hide(pdf_win);
     })
+
+    search_main_setup(win.webContents)
 }
 
-function selectfile(_win,options){
+function selectfile(_win, options) {
     dialog.showOpenDialog(_win, {
-        title:"Please select score file",
-        message:"Please select score file",
+        title: "Please select score file",
+        message: "Please select score file",
         properties: ['openFile']
     }).then((args) => {
         if (!args['canceled']) {
             if (showScoreWindow(_win, args['filePaths'][0]))
                 return;
         }
-        if ( options.callback !== undefined )
+        if (options.callback !== undefined)
             options['callback']();
     })
 }
@@ -206,7 +227,7 @@ app.on('activate', () => {
     }
 })
 
-app.on('open-file',(e,filepath)=>{
+app.on('open-file', (e, filepath) => {
     createMainWindow(filepath);
 })
 
@@ -214,9 +235,65 @@ app.on('open-file',(e,filepath)=>{
 // 残りのアプリ固有のメインプロセスコードを含めることができます。
 // 別々のファイルに分割してここで require することもできます。
 
+function search_main_setup(webcontents) {
+    queue = {}
+    // contents への found_in_page の listener を設定する．
+    // このリスナーは renderer　に通知する
+    webcontents.on('found-in-page', (event, results) => {
+        if (results.finalUpdate) {
+            queue[results.requestId].send('res_search',
+                {state: 'update', text: `${results.activeMatchOrdinal-1}/${results.matches-1}`})
+            delete queue[results.requestId]
+        }
+    })
+    // renderer からのイベントの listener を設定する．
+    // このリスナーは webcontents の fineinpage AP　を操作する．
+    ipcMain.on('req_search', (e, args) => {
+        switch (args['state']) {
+            case 'start':
+                id = webcontents.findInPage(args['text'])
+                queue[id] = e.sender
+                break
+            case 'forward':
+                id = webcontents.findInPage(args['text'], {findNext: true})
+                queue[id] = e.sender
+                break
+            case 'backward':
+                id = webcontents.findInPage(args['text'], {forward: false, findNext: true})
+                queue[id] = e.sender
+                break
+            case 'close':
+                webcontents.stopFindInPage('clearSelection')
+                break
+        }
+    })
+    // renderer への通知
+    // 1) dialog の open
+    // 2) dialog への　設定（全体の数と，現在の位置）
 
-function force_hide(_win){
-    if ((_win !== undefined) && !(_win.isDestroyed()) ) _win.hide();
+    // renderer からの通知
+    // 1) 最初の検索　（文字列）
+    // 2) 前方向への次の検索
+    // 3) 後方向への次の検索
+    // 4) dialog の close/検索の終了
+
+    // renderer 側でセットアップルーチンを作成する必要あり
+    // 1) document の中に dialog 要素をつくる．
+    // 2) dialog 内のボタン等からのイベントの listener を設定する．
+    //    このリスナーは main に通知する．
+    //        開始，前，後，閉じる　のボタン
+    // 3) main からのイベントの listener の設定をする．
+    //    このリスナーは，dialog の設定をする．
+    //        オープン，現在の位置等の設定
+}
+
+function search_main_opneDialog(contents) {
+    // search を行う際に dialog をオープンさせるときにこれを呼び出す．
+    contents.send('res_search', {state: 'open', text: '0/0'})
+}
+
+function force_hide(_win) {
+    if ((_win !== undefined) && !(_win.isDestroyed())) _win.hide();
 }
 
 
@@ -226,7 +303,7 @@ function showScoreWindow(win, filepath) {
     // open file dialog を開いて
     console.log(`in showScoreWindow ${win}`);
     const mfile = new manabaXSLX(filepath);
-    if (!mfile.isAvairable()) return　false;
+    if (!mfile.isAvairable()) return false;
     app.addRecentDocument(filepath);
     const data = mfile.get_status();
     data['win_id'] = win.webContents.id;
@@ -249,18 +326,18 @@ function showScoreWindow(win, filepath) {
 
     win.loadFile("score.html");
     console.log('out showScoreWindow');
-    return true ;
+    return true;
 }
 
 
-function open_student_dir(win,filepath){
+function open_student_dir(win, filepath) {
     dialog.showOpenDialog({
-        title:"Please select preview file",
-        message:"Please select preview file",
-        defaultPath:filepath,
+        title: "Please select preview file",
+        message: "Please select preview file",
+        defaultPath: filepath,
         properties: ['openFile']
-    }).then( (args) =>{
-        if(!args.canceled) open_student_one_file(win,args.filePaths[0])
+    }).then((args) => {
+        if (!args.canceled) open_student_one_file(win, args.filePaths[0])
     })
 }
 
@@ -278,7 +355,7 @@ function open_student_one_file(win, filepath) {
 
 
 function open_student_file(win) {
-    if((win===undefined)||(win===null))return;
+    if ((win === undefined) || (win === null)) return;
     const filepath = win.webContents.manabaXSLX.get_student_file_path();
     if (filepath !== undefined) {
         fs.stat(filepath, (error, stats) => {
@@ -290,7 +367,7 @@ function open_student_file(win) {
                 if (files.length === 1) {
                     open_student_one_file(win, path.join(filepath, files[0]))
                 } else {
-                    open_student_dir(win,filepath)
+                    open_student_dir(win, filepath)
 //                    shell.openPath(path.join(filepath));
 //                    pdf_win.hide();
                 }
@@ -314,10 +391,10 @@ function get_file_in_dir(pathname) {
     return array;
 }
 
-function open_original_file(_win){
-    if ((_win===null)||(_win===undefined)) return ;
-    if (_win===pdf_win)return ;
-    if (_win===manaba_win)return ;
+function open_original_file(_win) {
+    if ((_win === null) || (_win === undefined)) return;
+    if (_win === pdf_win) return;
+    if (_win === manaba_win) return;
     const f = _win.webContents.manabaXSLX.fullpath;
     shell.openPath(f);
     _win.close();

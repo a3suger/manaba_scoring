@@ -125,6 +125,80 @@ function set_form_data(dict){
     }
 }
 
+//
+//
+// renderer への通知
+// 1) dialog の open
+// 2) dialog への　設定（全体の数と，現在の位置）
+
+// renderer からの通知
+// 1) 最初の検索　（文字列）
+// 2) 前方向への次の検索
+// 3) 後方向への次の検索
+// 4) dialog の close/検索の終了
+
+// renderer 側でセットアップルーチンを作成する必要あり
+// 1) document の中に dialog 要素をつくる．
+// 2) dialog 内のボタン等からのイベントの listener を設定する．
+//    このリスナーは main に通知する．
+//        開始，前，後，閉じる　のボタン
+// 3) main からのイベントの listener の設定をする．
+//    このリスナーは，dialog の設定をする．
+//        オープン，現在の位置等の設定
+
+function search_render_setup(win) {
+    // 1) document の中に dialog 要素をつくる．
+    const html_doc = `
+<webvive>
+<dialog id="search_dialog">
+  <div>
+    <input type="search" id="search_text" value="" placeholder="Please input search word" style="width:200px;">
+  </div>
+  <div>
+    <button id="search_button_start">search</button>
+    <span id="search_label_position">0/0</span>
+    <button id="search_button_backward">&lt;</button>
+    <button id="search_button_forward">&gt;</button>
+    <button id="search_button_close">cancel</button>
+  </div>
+</dialog>
+</webvive>
+`
+    const body_node = document.getElementById('search').innerHTML = html_doc
+
+    // 2) dialog 内のボタン等からのイベントの listener を設定する．
+    //    このリスナーは main に通知する．
+    //        開始，前，後，閉じる　のボタン
+    var search_input = document.getElementById('search_text')
+    document.getElementById('search_button_start').addEventListener('click', () => {
+        ipcRenderer.send('req_search', {state: "start", text: search_input.value})
+    })
+    document.getElementById('search_button_backward').addEventListener('click', () => {
+        ipcRenderer.send('req_search', {state: "backward", text: search_input.value})
+    })
+    document.getElementById('search_button_forward').addEventListener('click', () => {
+        ipcRenderer.send('req_search', {state: "forward", text: search_input.value})
+    })
+    document.getElementById('search_button_close').addEventListener('click', () => {
+        ipcRenderer.send('req_search', {state: "close", text: search_input.value})
+        document.getElementById('search_dialog').close()
+    })
+    search_input.onkeypress = (e) => {
+        if(search_input.value != '') {
+            ipcRenderer.send('req_search', {state: "start", text: search_input.value})
+        }
+    }
+    // 3) main からのイベントの listener の設定をする．
+    //    このリスナーは，dialog の設定をする．
+    //        オープン，現在の位置等の設定
+    ipcRenderer.on('res_search', (event, args) => {
+        document.getElementById('search_label_position').innerText = args['text']
+        if(args['state'] =='open') {
+            document.getElementById('search_text').value = ''
+            document.getElementById('search_dialog').show()
+        }
+    })
+}
 
 window.onload = () => {
     answers = new Answers ();
@@ -154,6 +228,7 @@ window.onload = () => {
 
     window.ipcRenderer.send('req_init_data','hello');
 
+    search_render_setup(window)
 }
 
 
