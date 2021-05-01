@@ -1,4 +1,4 @@
-const {app, Menu, MenuItem, dialog, ipcMain, ipcRenderer, BrowserWindow, shell} = require('electron')
+const {app, Menu, MenuItem, dialog, ipcMain, BrowserWindow} = require('electron')
 const path = require('path');
 const fs = require('fs');
 const Store = require('electron-store');
@@ -23,7 +23,6 @@ const DEFAULT_POS = {
 // https://qiita.com/umamichi/items/8781e426e9cd4a88961b
 
 let pdf_win;
-
 const PDFWindow = require('electron-pdf-window');
 
 function createPDFWindow() {
@@ -47,6 +46,8 @@ function createPDFWindow() {
     }
 }
 
+let main_win;
+
 function app_main() {
     const mainMenu = new Menu();
 
@@ -61,20 +62,20 @@ function app_main() {
     fileMenu.append(new MenuItem({
         label: 'Open', accelerator: 'CommandOrControl+O', click: (m, w, e) => {
             if ((pdf_win !== undefined) && (w === pdf_win)) return;
-            if (w === undefined) {
-                createMainWindow(null)
-            } else {
+            if ((main_win !== undefined) && (w === main_win)) {
                 selectfile(w)
+            } else {
+                main_win = createMainWindow(null)
             }
         }
     }));
     fileMenu.append(new MenuItem({role: 'recentdocuments', submenu: [new MenuItem({role: 'clearrecentdocuments'})]}));
     fileMenu.append(new MenuItem({
         role: 'close', click: () => {
-            const win = BrowserWindow.getFocusedWindow();
-            if (win === undefined) return;
-            if (win === pdf_win) force_hide(win);
-            win.close();
+            if (main_win !== undefined) {
+                force_hide(pdf_win)
+                main_win.close()
+            }
         }
     }));
     mainMenu.append(new MenuItem({role: 'fileMenu', submenu: fileMenu}));
@@ -84,9 +85,9 @@ function app_main() {
     editMenu.append(new MenuItem({role: 'copy'}));
     editMenu.append(new MenuItem({role: 'paste'}));
     editMenu.append(new MenuItem({
-        label: 'Search', accelerator: 'CommandOrControl+f',  click: () => {
+        label: 'Search', accelerator: 'CommandOrControl+f', click: () => {
             const win = BrowserWindow.getFocusedWindow();
-            search_main_opneDialog(win.webContents)
+            search_main_openDialog(win.webContents)
         }
     }));
     editMenu.append(new MenuItem({type: "separator"}));
@@ -95,18 +96,6 @@ function app_main() {
 
     const winMenu = new Menu();
     winMenu.append(new MenuItem({'role': 'minimize'}));
-    winMenu.append(new MenuItem({
-        label: 'Focus Next', accelerator: 'Cmd+N', click: () => {
-            console.info('focus next')
-            var ws = BrowserWindow.getAllWindows();
-            for (var i = 0; i < ws.length; i++) {
-                if (ws[i].isFocused()) {
-                    ws[i].blur();
-                    break;
-                }
-            }
-        }
-    }));
     winMenu.append(new MenuItem({
         label: 'Reload Sub-window', accelerator: 'Cmd+R', click: () => {
             const win = BrowserWindow.getFocusedWindow();
@@ -142,19 +131,19 @@ function app_main() {
         open_student_file(BrowserWindow.fromWebContents(e.sender));
     })
 
-    createMainWindow(null);
+    main_win = createMainWindow(null);
 }
 
 function createMainWindow(filepath) {
     const pos = store.get('main.window.pos') || [DEFAULT_POS.x, DEFAULT_POS.y];
-    const size = store.get('main.main.size') || [DEFAULT_SIZE.width, DEFAULT_SIZE.height];
+    const size = store.get('main.window.size') || [DEFAULT_SIZE.width, DEFAULT_SIZE.height];
 
     const win = new BrowserWindow({
+        width: size[0],
+        height: size[1],
+        x: pos[0],
+        y: pos[1],
         webPreferences: {
-            width: size[0],
-            height: size[1],
-            x: pos[0],
-            y: pos[1],
             nodeIntegration: true,
             contextIsolation: false,
             preload: path.resolve(__dirname, 'preload4score.js'),
@@ -172,17 +161,23 @@ function createMainWindow(filepath) {
     }
     search_main_setup(win.webContents)
 
-    function _local_save(){
-        store.set('main.window.pos', win.getPosition())  // ウィンドウの座標を記録
-        store.set('main.window.size', win.getSize())     // ウィンドウのサイズを記録
+    function _local_save() {
+        store.set('main.window.pos', main_win.getPosition())  // ウィンドウの座標を記録
+        store.set('main.window.size', main_win.getSize())     // ウィンドウのサイズを記録
     }
 
     win.on('close', (e) => {
         _local_save()
-        force_hide(pdf_win);
+        if(pdf_win!==undefined)
+            pdf_win.destroy()
     })
-    win.on('resized',(e) =>{_local_save() })
-    win.on('moved',(e) =>{_local_save() })
+    win.on('resized', (e) => {
+        _local_save()
+    })
+    win.on('moved', (e) => {
+        _local_save()
+    })
+    return win
 }
 
 function selectfile(_win, options) {
@@ -207,24 +202,28 @@ function selectfile(_win, options) {
 app.whenReady().then(app_main)
 
 // 全てのウィンドウが閉じられた時に終了します。
-app.on('window-all-closed', () => {
-    // macOSでは、ユーザが Cmd + Q で明示的に終了するまで、
-    // アプリケーションとそのメニューバーは有効なままにするのが一般的です。
-    if (process.platform !== 'darwin') {
-        app.quit()
-    }
-})
-
-app.on('activate', () => {
-    // macOSでは、ユーザがドックアイコンをクリックしたとき、
-    // そのアプリのウインドウが無かったら再作成するのが一般的です。
-    if (BrowserWindow.getAllWindows().length === 0) {
-        createMainWindow(null);
-    }
-})
+// app.on('window-all-closed', () => {
+//     // macOSでは、ユーザが Cmd + Q で明示的に終了するまで、
+//     // アプリケーションとそのメニューバーは有効なままにするのが一般的です。
+//     if (process.platform !== 'darwin') {
+//         app.quit()
+//     }
+// })
+//
+// app.on('activate', () => {
+//     // macOSでは、ユーザがドックアイコンをクリックしたとき、
+//     // そのアプリのウインドウが無かったら再作成するのが一般的です。
+//     if (BrowserWindow.getAllWindows().length === 0) {
+//         createMainWindow(null);
+//     }
+// })
 
 app.on('open-file', (e, filepath) => {
-    createMainWindow(filepath);
+    if (main_win !== undefined) {
+        main_win = createMainWindow(filepath);
+    } else {
+        showScoreWindow(main_win, filepath)
+    }
 })
 
 // このファイル内には、
@@ -238,7 +237,7 @@ function search_main_setup(webcontents) {
     webcontents.on('found-in-page', (event, results) => {
         if (results.finalUpdate) {
             queue[results.requestId].send('res_search',
-                {state: 'update', text: `${results.activeMatchOrdinal-1}/${results.matches-1}`})
+                {state: 'update', text: `${results.activeMatchOrdinal - 1}/${results.matches - 1}`})
             delete queue[results.requestId]
         }
     })
@@ -283,7 +282,7 @@ function search_main_setup(webcontents) {
     //        オープン，現在の位置等の設定
 }
 
-function search_main_opneDialog(contents) {
+function search_main_openDialog(contents) {
     // search を行う際に dialog をオープンさせるときにこれを呼び出す．
     contents.send('res_search', {state: 'open', text: '0/0'})
 }
@@ -301,7 +300,6 @@ function showScoreWindow(win, filepath) {
     if (!mfile.isAvairable()) return false;
     app.addRecentDocument(filepath);
     const data = mfile.get_status();
-    data['win_id'] = win.webContents.id;
     win.webContents['manabaXSLX'] = mfile;
     createPDFWindow();
 

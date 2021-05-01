@@ -4,6 +4,7 @@ const XLSX = require('xlsx');
 const path = require('path');
 
 const REPORTFILE = 'reportlist.xls';
+const REPORTFILE2 = 'reportlist.xlsx';
 
 const rowMin   = 7;
 const colSystemId = 4;
@@ -23,7 +24,9 @@ function getCellValue(sheet,row,col){
 module.exports = class Manaba {
     constructor (filepath) {
         switch( path.basename(filepath) ){
-            case REPORTFILE:{
+            case REPORTFILE:
+            case REPORTFILE2:
+            {
                 this.teamdirdict = undefined;
                 break;
             }
@@ -50,7 +53,6 @@ module.exports = class Manaba {
             value = getCellValue(sheet, index, 0);
         } while (value !== "#end");
         this.rowMax = index - 1;
-        // end get Max Row index
         this.cource_id = getCellValue(sheet, 1, 1);
         this.content_id = getCellValue(sheet, 2, 1);
 
@@ -69,12 +71,10 @@ module.exports = class Manaba {
         let colStudentStatus;
         const sheet = this.workbook.Sheets["Sheet1"];
         switch( path.basename(this.fullpath) ){
-            case REPORTFILE: {
+            case REPORTFILE:
+            case REPORTFILE2:
+            {
                 colStudentStatus = 12;
-                break;
-            }
-            case PROJECTFILE: {
-                colStudentStatus = 13;
                 break;
             }
         }
@@ -109,42 +109,17 @@ module.exports = class Manaba {
         const index = this.current_index;
         const sheet = this.workbook.Sheets["Sheet1"];
         switch (path.basename(this.fullpath)) {
-            case REPORTFILE: {
+            case REPORTFILE:
+            case REPORTFILE2:
+            {
                 if (getCellValue(sheet, index, 12) === '未提出') return undefined;
                 let fname = getCellValue(sheet, index, 15);
-                console.log(`get stsudnet file path ${index} ${fname}`);
                 if (fname === '開く') fname = getCellValue(sheet, index, colStudentId) + '@' + getCellValue(sheet, index, colSystemId);
                 return path.join(path.dirname(this.fullpath), fname)
-            }
-            case PROJECTFILE: {
-                if (getCellValue(sheet, index, 13) === '未提出') return undefined;
-                const tname = getCellValue(sheet, index, 12);
-                if (tname === '') return undefined;
-                const s_dir = getCellValue(sheet, index, colSystemId) + '-' + getCellValue(sheet, index, colStudentId);
-                return  path.join(path.dirname(this.fullpath), this.teamdirdict[tname], s_dir);
             }
             default:
                 return undefined;
         }
     }
-
-//     get_type(){
-//         switch(path.basename(this.fullpath)){
-//             case PROJECTFILE:
-//                 return 'project';
-//             case REPORTFILE:
-//                 return 'report' ;
-//         }
-//     }
-//
-//     get_student_name(){
-//         const index = this.current_index;
-//         const sheet = this.workbook.Sheets["Sheet1"];
-//         return [
-//             this.cource_id,
-//             this.content_id,
-//             getCellValue(sheet, index, colStudentName)
-//         ];
-//     }
 }
 

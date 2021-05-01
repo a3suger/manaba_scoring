@@ -40,7 +40,6 @@ class Answers {
 }
 
 let rowIndex ;
-let win_id ;
 let answers  ;
 
 function go(){
@@ -65,7 +64,6 @@ function down(){
 
 function send_data(index,next){
     const data = {
-        'id': win_id,
         'index': index,
         'student_score': document.getElementById("student_score").value,
         'student_mark': document.getElementById("student_mark").value,
@@ -131,31 +129,29 @@ function set_form_data(dict){
 
 function search_render_setup(win) {
     // 1) document の中に dialog 要素をつくる．
-    const html_doc = `
-<webvive>
+    const elem_span = document.createElement('span')
+    elem_span.innerHTML = `
 <dialog id="search_dialog">
   <div>
-    <input type="search" id="search_text" value="" placeholder="Please input search word" style="width:200px;">
-  </div>
-  <div>
-    <button id="search_button_start">search</button>
+    <input type="search" id="search_text" value="" placeholder="Please input word" style="width:150px;">
     <span id="search_label_position">0/0</span>
     <button id="search_button_backward">&lt;</button>
     <button id="search_button_forward">&gt;</button>
     <button id="search_button_close">cancel</button>
   </div>
 </dialog>
-</webvive>
 `
-    const body_node = document.getElementById('search').innerHTML = html_doc
+    document.getElementsByTagName('body')[0].insertAdjacentElement('afterbegin', elem_span)
 
     // 2) dialog 内のボタン等からのイベントの listener を設定する．
     //    このリスナーは main に通知する．
     //        開始，前，後，閉じる　のボタン
-    var search_input = document.getElementById('search_text')
-    document.getElementById('search_button_start').addEventListener('click', () => {
-        ipcRenderer.send('req_search', {state: "start", text: search_input.value})
-    })
+    const search_input = document.getElementById('search_text')
+    search_input.onkeypress = (e) => {
+        if(search_input.value != '') {
+            ipcRenderer.send('req_search', {state: "start", text: search_input.value})
+        }
+    }
     document.getElementById('search_button_backward').addEventListener('click', () => {
         ipcRenderer.send('req_search', {state: "backward", text: search_input.value})
     })
@@ -166,11 +162,6 @@ function search_render_setup(win) {
         ipcRenderer.send('req_search', {state: "close", text: search_input.value})
         document.getElementById('search_dialog').close()
     })
-    search_input.onkeypress = (e) => {
-        if(search_input.value != '') {
-            ipcRenderer.send('req_search', {state: "start", text: search_input.value})
-        }
-    }
     // 3) main からのイベントの listener の設定をする．
     //    このリスナーは，dialog の設定をする．
     //        オープン，現在の位置等の設定
@@ -189,7 +180,6 @@ window.onload = () => {
 
     window.ipcRenderer.once('rep_init_data', (e, init) => {
         rowIndex = init['min'] ;
-        win_id = init['win_id'];
         document.getElementsByTagName("title")[0].innerText = `${init['content']}@${init['course']}`;
         const range = document.getElementById("range");
         range.setAttribute("min",init['min']);
