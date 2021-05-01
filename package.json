@@ -9,7 +9,7 @@
   },
   "keywords": ["manaba", "report", "scoring"],
   "author": "Akira SATO<akira@cc.tsukuba.ac.jp>",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "electron": "^12.0.5",
     "electron-packager": "^15.2.0",
