@@ -60,7 +60,7 @@ function app_main() {
 
     const fileMenu = new Menu();
     fileMenu.append(new MenuItem({
-        label: 'Open', accelerator: 'CommandOrControl+O', click: (m, w, e) => {
+        label: 'Open', accelerator: 'CommandOrControl+O', click: (m, w) => {
             if ((pdf_win !== undefined) && (w === pdf_win)) return;
             if ((main_win !== undefined) && (w === main_win)) {
                 selectfile(w)
@@ -166,15 +166,15 @@ function createMainWindow(filepath) {
         store.set('main.window.size', main_win.getSize())     // ウィンドウのサイズを記録
     }
 
-    win.on('close', (e) => {
+    win.on('close', () => {
         _local_save()
-        if(pdf_win!==undefined)
+        if (pdf_win !== undefined)
             pdf_win.destroy()
     })
-    win.on('resized', (e) => {
+    win.on('resized', () => {
         _local_save()
     })
-    win.on('moved', (e) => {
+    win.on('moved', () => {
         _local_save()
     })
     return win

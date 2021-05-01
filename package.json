@@ -7,11 +7,12 @@
     "run": "electron .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["manaba", "report", "scoring"],
+  "author": "Akira SATO<akira@cc.tsukuba.ac.jp>",
   "license": "ISC",
   "dependencies": {
     "electron": "^12.0.5",
+    "electron-packager": "^15.2.0",
     "electron-pdf-window": "^1.0.12",
     "electron-store": "^8.0.0",
     "xlsx": "^0.16.9"

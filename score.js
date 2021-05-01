@@ -1,30 +1,30 @@
-
-
 class Answers {
-    constructor(){
+    constructor() {
         this.dict = [];
     }
-    makeString(array){
+
+    makeString(array) {
         let tmp_array;
-        if ( isNaN(array[0]) ){
-            tmp_array = ['',array[1],array[2]] ;
-        }else{
-            tmp_array = [String(array[0]),array[1],array[2]] ;
+        if (isNaN(array[0])) {
+            tmp_array = ['', array[1], array[2]];
+        } else {
+            tmp_array = [String(array[0]), array[1], array[2]];
         }
         return tmp_array.join(':');
     }
-    append(array,index){
+
+    append(array, index) {
         const key = this.makeString(array);
-        if( key === '::' ) return ;
-        if( key in this.dict ){
+        if (key === '::') return;
+        if (key in this.dict) {
             let item = this.dict[key];
-            if (! item.includes( index ) )  
+            if (!item.includes(index))
                 item.push(index)
-        }else{
+        } else {
             this.dict[key] = [index]
             // ここに追加された時の処理を追記する。
             const element = document.createElement("p");
-            element.id = key ;
+            element.id = key;
             element.innerText = key;
             element.className = 'panel_item'
             element.onclick = () => {
@@ -33,27 +33,27 @@ class Answers {
                 document.getElementById("student_mark").value = array[1];
                 document.getElementById("student_comment").value = array[2];
             }
-            element.ondblclick = up ;
+            element.ondblclick = up;
             document.getElementById("form_panel").appendChild(element);
         }
     }
 }
 
-let rowIndex ;
-let answers  ;
+let rowIndex;
+let answers;
 
-function go(){
+function go() {
     let next_index = parseInt(document.getElementById("range_value").innerText);
-    if ( isNaN(next_index) ) next_index = rowIndex ;
-    send_data(rowIndex,next_index)
+    if (isNaN(next_index)) next_index = rowIndex;
+    send_data(rowIndex, next_index)
 }
 
-function up(){
-    send_data(rowIndex,(rowIndex+1));
+function up() {
+    send_data(rowIndex, (rowIndex + 1));
 }
 
-function down(){
-    send_data(rowIndex,(rowIndex-1));
+function down() {
+    send_data(rowIndex, (rowIndex - 1));
 }
 
 
@@ -62,7 +62,7 @@ function down(){
 // add_dictonary
 // send
 
-function send_data(index,next){
+function send_data(index, next) {
     const data = {
         'index': index,
         'student_score': document.getElementById("student_score").value,
@@ -72,7 +72,7 @@ function send_data(index,next){
     };
     add_dictonary(data);
     document.getElementById("form").reset();
-    window.electron.ipcRenderer.send('req_row_data',data);
+    window.electron.ipcRenderer.send('req_row_data', data);
 }
 
 
@@ -81,23 +81,23 @@ function send_data(index,next){
 // flag = true  なら set_form_data
 
 
-function add_dictonary(dict){
-    answers.append([dict['student_score'],dict['student_mark'],dict['student_comment']],dict['index']);
+function add_dictonary(dict) {
+    answers.append([dict['student_score'], dict['student_mark'], dict['student_comment']], dict['index']);
 }
 
-function set_form_data(dict){
+function set_form_data(dict) {
     rowIndex = dict['index'];
     document.getElementById("range_value").value = rowIndex;
     document.getElementById("range_value").innerText = rowIndex;
-    document.getElementById("range").setAttribute("value",dict['index'])
+    document.getElementById("range").setAttribute("value", dict['index'])
     document.getElementById("student_id").innerText = dict['student_id'];
     document.getElementById("student_name").innerText = dict['student_name'];
     document.getElementById("student_status").innerText = dict['student_status'];
-    if (document.getElementById("student_status").innerText === "未提出" ) {
+    if (document.getElementById("student_status").innerText === "未提出") {
         document.getElementById("input_part").style.visibility = "hidden";
         document.getElementById("button_next").focus();
-    }else{
-        if( dict['student_score'] !== undefined )
+    } else {
+        if (dict['student_score'] !== undefined)
             document.getElementById("student_score").value = dict['student_score'];
         document.getElementById("student_mark").value = dict['student_mark'];
         document.getElementById("student_comment").value = dict['student_comment'];
@@ -127,7 +127,7 @@ function set_form_data(dict){
 //    このリスナーは，dialog の設定をする．
 //        オープン，現在の位置等の設定
 
-function search_render_setup(win) {
+function search_render_setup() {
     // 1) document の中に dialog 要素をつくる．
     const elem_span = document.createElement('span')
     elem_span.innerHTML = `
@@ -147,8 +147,8 @@ function search_render_setup(win) {
     //    このリスナーは main に通知する．
     //        開始，前，後，閉じる　のボタン
     const search_input = document.getElementById('search_text')
-    search_input.onkeypress = (e) => {
-        if(search_input.value != '') {
+    search_input.onkeypress = () => {
+        if (search_input.value !== '') {
             ipcRenderer.send('req_search', {state: "start", text: search_input.value})
         }
     }
@@ -167,7 +167,7 @@ function search_render_setup(win) {
     //        オープン，現在の位置等の設定
     ipcRenderer.on('res_search', (event, args) => {
         document.getElementById('search_label_position').innerText = args['text']
-        if(args['state'] =='open') {
+        if (args['state'] === 'open') {
             document.getElementById('search_text').value = ''
             document.getElementById('search_dialog').show()
         }
@@ -175,29 +175,29 @@ function search_render_setup(win) {
 }
 
 window.onload = () => {
-    answers = new Answers ();
+    answers = new Answers();
 
 
     window.ipcRenderer.once('rep_init_data', (e, init) => {
-        rowIndex = init['min'] ;
+        rowIndex = init['min'];
         document.getElementsByTagName("title")[0].innerText = `${init['content']}@${init['course']}`;
         const range = document.getElementById("range");
-        range.setAttribute("min",init['min']);
-        range.setAttribute("max",init['max']);
+        range.setAttribute("min", init['min']);
+        range.setAttribute("max", init['max']);
         document.getElementById("range_value").innerText = rowIndex;
     });
 
     window.ipcRenderer.on('rep_row_data', (e, row_data) => {
-        if( row_data['flag'] ){
+        if (row_data['flag']) {
             set_form_data(row_data);
-        }else{
+        } else {
             add_dictonary(row_data);
         }
     });
 
-    window.ipcRenderer.send('req_init_data','hello');
+    window.ipcRenderer.send('req_init_data', 'hello');
 
-    search_render_setup(window)
+    search_render_setup()
 }
 
 

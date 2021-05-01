@@ -6,28 +6,26 @@ const path = require('path');
 const REPORTFILE = 'reportlist.xls';
 const REPORTFILE2 = 'reportlist.xlsx';
 
-const rowMin   = 7;
+const rowMin = 7;
 const colSystemId = 4;
 const colStudentId = 5;
 const colStudentName = 6;
-const colStudentScore = 9 ;
+const colStudentScore = 9;
 const colStudentMark = 10;
 const colStudentComment = 11;
 
 
-function getCellValue(sheet,row,col){
-    let cell = sheet[XLSX.utils.encode_cell({r:row, c:col})];
+function getCellValue(sheet, row, col) {
+    let cell = sheet[XLSX.utils.encode_cell({r: row, c: col})];
     return (cell ? cell.v : undefined);
 }
 
 
 module.exports = class Manaba {
-    constructor (filepath) {
-        switch( path.basename(filepath) ){
+    constructor(filepath) {
+        switch (path.basename(filepath)) {
             case REPORTFILE:
-            case REPORTFILE2:
-            {
-                this.teamdirdict = undefined;
+            case REPORTFILE2: {
                 break;
             }
             default: {
@@ -39,12 +37,12 @@ module.exports = class Manaba {
         this.fullpath = filepath;
     }
 
-    isAvairable(){
-        return ( this.workbook !== undefined);
+    isAvairable() {
+        return (this.workbook !== undefined);
     }
 
     get_status() {
-        if(this.workbook === undefined) return undefined ;
+        if (this.workbook === undefined) return undefined;
         const sheet = this.workbook.Sheets["Sheet1"];
         let value;
         let index = rowMin - 1;
@@ -70,15 +68,14 @@ module.exports = class Manaba {
     get_row_data(index) {
         let colStudentStatus;
         const sheet = this.workbook.Sheets["Sheet1"];
-        switch( path.basename(this.fullpath) ){
+        switch (path.basename(this.fullpath)) {
             case REPORTFILE:
-            case REPORTFILE2:
-            {
+            case REPORTFILE2: {
                 colStudentStatus = 12;
                 break;
             }
         }
-        this.current_index = index ;
+        this.current_index = index;
         return {
             'index': index,
             'student_id': getCellValue(sheet, index, colStudentId),
@@ -90,18 +87,18 @@ module.exports = class Manaba {
         };
     }
 
-    set_row_data (row_data)  {
+    set_row_data(row_data) {
         const score = parseInt(row_data['student_score']);
         const index = row_data['index'];
         const sheet = this.workbook.Sheets["Sheet1"];
-        if (! isNaN(score) )
-            sheet[XLSX.utils.encode_cell({r:index, c:colStudentScore})] = { t:'n', v:score } ;
-        sheet[XLSX.utils.encode_cell({r:index, c:colStudentMark})] = { t:'s', v:row_data['student_mark'] } ;
-        sheet[XLSX.utils.encode_cell({r:index, c:colStudentComment})] = { t:'s', v:row_data['student_comment'] } ;
-        XLSX.writeFile(this.workbook,this.fullpath,{booktype:"biff8"});
+        if (!isNaN(score))
+            sheet[XLSX.utils.encode_cell({r: index, c: colStudentScore})] = {t: 'n', v: score};
+        sheet[XLSX.utils.encode_cell({r: index, c: colStudentMark})] = {t: 's', v: row_data['student_mark']};
+        sheet[XLSX.utils.encode_cell({r: index, c: colStudentComment})] = {t: 's', v: row_data['student_comment']};
+        XLSX.writeFile(this.workbook, this.fullpath, {booktype: "biff8"});
         let next = row_data['next'];
-        if (next<rowMin) next = rowMin ;
-        if (next>this.rowMax) next = this.rowMax ;
+        if (next < rowMin) next = rowMin;
+        if (next > this.rowMax) next = this.rowMax;
         return next;
     }
 
@@ -110,8 +107,7 @@ module.exports = class Manaba {
         const sheet = this.workbook.Sheets["Sheet1"];
         switch (path.basename(this.fullpath)) {
             case REPORTFILE:
-            case REPORTFILE2:
-            {
+            case REPORTFILE2: {
                 if (getCellValue(sheet, index, 12) === '未提出') return undefined;
                 let fname = getCellValue(sheet, index, 15);
                 if (fname === '開く') fname = getCellValue(sheet, index, colStudentId) + '@' + getCellValue(sheet, index, colSystemId);
