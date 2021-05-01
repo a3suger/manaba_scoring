@@ -139,16 +139,15 @@ function app_main() {
 
     Menu.setApplicationMenu(mainMenu);
 
-    ipcMain.on('req_row_data', (e, json) => {
-        console.log(json);
-        const data = JSON.parse(json);
+    ipcMain.on('req_row_data', (e, args) => {
+        console.log(args);
         const mfile = e.sender.manabaXSLX;
-        const next = mfile.set_row_data(data);
+        const next = mfile.set_row_data(args);
 
         const next_data = mfile.get_row_data(next);
         next_data['flag'] = true;
         BrowserWindow.fromWebContents(e.sender).closeFilePreview();
-        e.sender.send('rep_row_data', JSON.stringify(next_data));
+        e.sender.send('rep_row_data', next_data);
         open_student_file(BrowserWindow.fromWebContents(e.sender));
     })
 
@@ -311,16 +310,16 @@ function showScoreWindow(win, filepath) {
     createPDFWindow();
 
     ipcMain.once('req_init_data', (e) => {
-        e.sender.send('rep_init_data', JSON.stringify(data))
+        e.sender.send('rep_init_data', data)
         let row_data;
         for (let i = data['min']; i <= data['max']; i++) {
             row_data = mfile.get_row_data(i);
             row_data['flag'] = false;
-            e.sender.send('rep_row_data', JSON.stringify(row_data));
+            e.sender.send('rep_row_data', row_data);
         }
         row_data = mfile.get_row_data(data['min']);
         row_data['flag'] = true;
-        e.sender.send('rep_row_data', JSON.stringify(row_data));
+        e.sender.send('rep_row_data', row_data);
         open_student_file(BrowserWindow.fromWebContents(e.sender));
     });
 

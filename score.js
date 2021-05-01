@@ -3,7 +3,6 @@
 class Answers {
     constructor(){
         this.dict = [];
-        this.rev_dict =[] ;
     }
     makeString(array){
         let tmp_array;
@@ -21,9 +20,6 @@ class Answers {
             let item = this.dict[key];
             if (! item.includes( index ) )  
                 item.push(index)
-                if(this.rev_dict[index]!==undefined)
-                    this.remove(this.rev_dict[index],index)
-                this.rev_dict[index]=key
         }else{
             this.dict[key] = [index]
             // ここに追加された時の処理を追記する。
@@ -39,18 +35,6 @@ class Answers {
             }
             element.ondblclick = up ;
             document.getElementById("form_panel").appendChild(element);
-        }
-    }
-    remove(key,index){
-        if( key in this.dict ){
-            let item = this.dict[key];
-            if (! item.includes( index ) ){
-                item.splice(item.indexOf( index ))
-                if ( item.length === 0 ){
-                    delete this.dict[key];
-                    // ここに削除された時の処理を追記する。
-                }
-            }
         }
     }
 }
@@ -90,8 +74,7 @@ function send_data(index,next){
     };
     add_dictonary(data);
     document.getElementById("form").reset();
-    window.electron.ipcRenderer.send('req_row_data',JSON.stringify(data));
-    console.log(`rep ${JSON.stringify(data)}`);
+    window.electron.ipcRenderer.send('req_row_data',data);
 }
 
 
@@ -204,9 +187,7 @@ window.onload = () => {
     answers = new Answers ();
 
 
-    window.ipcRenderer.once('rep_init_data', (e, json) => {
-        const init = JSON.parse(json);
-        console.log(`init ${json}`);
+    window.ipcRenderer.once('rep_init_data', (e, init) => {
         rowIndex = init['min'] ;
         win_id = init['win_id'];
         document.getElementsByTagName("title")[0].innerText = `${init['content']}@${init['course']}`;
@@ -216,9 +197,7 @@ window.onload = () => {
         document.getElementById("range_value").innerText = rowIndex;
     });
 
-    window.ipcRenderer.on('rep_row_data', (e, json) => {
-        console.log(`rep ${json}`);
-        const row_data = JSON.parse(json);
+    window.ipcRenderer.on('rep_row_data', (e, row_data) => {
         if( row_data['flag'] ){
             set_form_data(row_data);
         }else{
