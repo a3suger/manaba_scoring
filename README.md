@@ -1,6 +1,6 @@
-# Manaba Scoreing 
+# Manaba Scoring 
 
-"Manaba Scoreing" is an electron application which supports the scoring of reports collected by [manaba](https://manaba.jp/).
+"Manaba Scoring" is an electron application which supports the scoring of reports collected by [manaba](https://manaba.jp/).
 
 written in Japanese.
 
