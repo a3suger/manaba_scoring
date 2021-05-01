@@ -2,10 +2,8 @@
 
 const XLSX = require('xlsx');
 const path = require('path');
-const fs   = require('fs');
 
 const REPORTFILE = 'reportlist.xls';
-const PROJECTFILE = 'projectlist.xls';
 
 const rowMin   = 7;
 const colSystemId = 4;
@@ -21,27 +19,12 @@ function getCellValue(sheet,row,col){
     return (cell ? cell.v : undefined);
 }
 
-function makeTeamDirDict(basepath){
-    const dict = [];
-    for (let dirent of fs.readdirSync(basepath, {withFileTypes: true})) {
-        if (dirent.name.indexOf('.') === 0) continue
-        if (dirent.isDirectory())
-            dict[dirent.name.split('_')[1]] = dirent.name;
-    }
-    return dict;
-}
-
-
 
 module.exports = class Manaba {
     constructor (filepath) {
         switch( path.basename(filepath) ){
             case REPORTFILE:{
                 this.teamdirdict = undefined;
-                break;
-            }
-            case PROJECTFILE:{
-                this.teamdirdict = makeTeamDirDict(path.dirname(filepath))
                 break;
             }
             default: {

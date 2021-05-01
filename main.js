@@ -23,6 +23,7 @@ const DEFAULT_POS = {
 // https://qiita.com/umamichi/items/8781e426e9cd4a88961b
 
 let pdf_win;
+
 const PDFWindow = require('electron-pdf-window');
 
 function createPDFWindow() {
@@ -36,10 +37,6 @@ function createPDFWindow() {
             y: pos[1],
             show: false
         });
-
-        pdf_win.webContents.on('did-fail-load', (e, id, str, vurl) => {
-            console.log(`fail open ${id} ${str} ${decodeURI(vurl)}`);
-        })
 
         pdf_win.on('close', (e) => {
             store.set('pdf.window.pos', pdf_win.getPosition())  // ウィンドウの座標を記録
@@ -87,7 +84,7 @@ function app_main() {
     editMenu.append(new MenuItem({role: 'copy'}));
     editMenu.append(new MenuItem({role: 'paste'}));
     editMenu.append(new MenuItem({
-        label: 'search', accelerator: 'CommandOrControl+f',  click: () => {
+        label: 'Search', accelerator: 'CommandOrControl+f',  click: () => {
             const win = BrowserWindow.getFocusedWindow();
             search_main_opneDialog(win.webContents)
         }
@@ -119,11 +116,6 @@ function app_main() {
             }
         }
     }));
-    winMenu.append(new MenuItem({
-        label: 'open original', click: (m, w, e) => {
-            open_original_file(w);
-        }
-    }));
     winMenu.append(new MenuItem({type: "separator"}));
     winMenu.append(new MenuItem({role: "front"}));
     mainMenu.append(new MenuItem({role: "windowmenu", submenu: winMenu}));
@@ -140,7 +132,6 @@ function app_main() {
     Menu.setApplicationMenu(mainMenu);
 
     ipcMain.on('req_row_data', (e, args) => {
-        console.log(args);
         const mfile = e.sender.manabaXSLX;
         const next = mfile.set_row_data(args);
 
@@ -169,7 +160,7 @@ function createMainWindow(filepath) {
             preload: path.resolve(__dirname, 'preload4score.js'),
         }
     });
-    // search_win = searchInPage(win);
+
     if (filepath == null) {
         selectfile(win, {
             'callback': () => {
@@ -179,13 +170,19 @@ function createMainWindow(filepath) {
     } else {
         showScoreWindow(win, filepath)
     }
-    win.on('close', (e) => {
+    search_main_setup(win.webContents)
+
+    function _local_save(){
         store.set('main.window.pos', win.getPosition())  // ウィンドウの座標を記録
         store.set('main.window.size', win.getSize())     // ウィンドウのサイズを記録
+    }
+
+    win.on('close', (e) => {
+        _local_save()
         force_hide(pdf_win);
     })
-
-    search_main_setup(win.webContents)
+    win.on('resized',(e) =>{_local_save() })
+    win.on('moved',(e) =>{_local_save() })
 }
 
 function selectfile(_win, options) {
@@ -300,7 +297,6 @@ const manabaXSLX = require("./manabaXSLX");
 
 function showScoreWindow(win, filepath) {
     // open file dialog を開いて
-    console.log(`in showScoreWindow ${win}`);
     const mfile = new manabaXSLX(filepath);
     if (!mfile.isAvairable()) return false;
     app.addRecentDocument(filepath);
@@ -324,7 +320,6 @@ function showScoreWindow(win, filepath) {
     });
 
     win.loadFile("score.html");
-    console.log('out showScoreWindow');
     return true;
 }
 
@@ -341,7 +336,6 @@ function open_student_dir(win, filepath) {
 }
 
 function open_student_one_file(win, filepath) {
-    console.info(`open_student_one_file ${filepath}`)
     if (/^\.pdf$/i.test(path.extname(filepath))) {
         pdf_win.loadFile(filepath);
         pdf_win.showInactive();
@@ -361,14 +355,11 @@ function open_student_file(win) {
             if (error) {
                 pdw_win.hide();
             } else if (stats.isDirectory()) {
-                console.log(`dialog ${filepath}`);
                 const files = get_file_in_dir(filepath);
                 if (files.length === 1) {
                     open_student_one_file(win, path.join(filepath, files[0]))
                 } else {
                     open_student_dir(win, filepath)
-//                    shell.openPath(path.join(filepath));
-//                    pdf_win.hide();
                 }
             } else if (stats.isFile()) {
                 open_student_one_file(win, filepath)
@@ -378,7 +369,6 @@ function open_student_file(win) {
         });
     } else {
         force_hide(pdf_win);
-        force_hide(manaba_win);
     }
 }
 
@@ -390,11 +380,3 @@ function get_file_in_dir(pathname) {
     return array;
 }
 
-function open_original_file(_win) {
-    if ((_win === null) || (_win === undefined)) return;
-    if (_win === pdf_win) return;
-    if (_win === manaba_win) return;
-    const f = _win.webContents.manabaXSLX.fullpath;
-    shell.openPath(f);
-    _win.close();
-}
