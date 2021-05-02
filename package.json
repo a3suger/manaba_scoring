@@ -5,6 +5,8 @@
   "main": "main.js",
   "scripts": {
     "run": "electron .",
+    "build": "electron-packager . ",
+
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": ["manaba", "report", "scoring"],
