@@ -231,7 +231,7 @@ app.on('open-file', (e, filepath) => {
 // 別々のファイルに分割してここで require することもできます。
 
 function search_main_setup(webcontents) {
-    queue = {}
+    let queue = {}
     // contents への found_in_page の listener を設定する．
     // このリスナーは renderer　に通知する
     webcontents.on('found-in-page', (event, results) => {
@@ -244,6 +244,7 @@ function search_main_setup(webcontents) {
     // renderer からのイベントの listener を設定する．
     // このリスナーは webcontents の fineinpage AP　を操作する．
     ipcMain.on('req_search', (e, args) => {
+        let id;
         switch (args['state']) {
             case 'start':
                 id = webcontents.findInPage(args['text'])
