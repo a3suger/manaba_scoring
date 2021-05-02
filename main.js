@@ -352,7 +352,7 @@ function open_student_file(win) {
     if (filepath !== undefined) {
         fs.stat(filepath, (error, stats) => {
             if (error) {
-                pdw_win.hide();
+                pdf_win.hide();
             } else if (stats.isDirectory()) {
                 const files = get_file_in_dir(filepath);
                 if (files.length === 1) {
@@ -363,7 +363,7 @@ function open_student_file(win) {
             } else if (stats.isFile()) {
                 open_student_one_file(win, filepath)
             } else {
-                pdw_win.hide();
+                pdf_win.hide();
             }
         });
     } else {
