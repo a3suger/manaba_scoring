@@ -6,37 +6,35 @@
     <link rel="stylesheet" type="text/css" href="score.css">
 </head>
 <body>
-<div id="search"></div>
-<div class="form">
-    <div class="form_main">
-        <form id="form">
-            <div id="input_pane">
-                <div id="student_info">
-                    <span id="student_id">学籍番号</span>
-                    <span id="student_name">姓名</span>
-                    <span id="student_status">状態</span>
-                </div>
+<div class="body_item_div" id="form_div">
+    <form id="form">
+        <div clsss="form_item_div" id="input_pane">
+            <div id="student_info">
+                <span class="student_info_item" id="student_id">学籍番号</span>
+                <span class="student_info_item" id="student_name">姓名</span>
+                <span class="student_info_item" id="student_status">状態</span>
             </div>
-            <span id="input_part">
+        </div>
+        <div clsss="form_item_div" id="input_part">
             <div id="input_part_score">
-                <p><label for="student_score">点数</label><input type="text" id="student_score"/></p>
-                <p><label for="student_mark">評価</label><input type="text" id="student_mark"/></p>
+                <label for="student_score">点数</label><input type="text" id="student_score"/>
+                <label for="student_mark">評価</label><input type="text" id="student_mark"/>
             </div>
             <div id="input_part_comment">
-                <p><label for="student_comment">講評</label></p>
-                <p><textarea id="student_comment" rows=10></textarea></p>
+                <div><label for="student_comment">講評</label></div>
+                <div><textarea id="student_comment" rows=5></textarea></div>
             </div>
-            </span>
-            <div>
-                <button id="button_next" type=button onclick="up()">次</button>
-                <button type=button onclick="down()">戻</button>
-                <label for="range">位置</label><input type="range" id="range" min="0" max="100" value="0" step="1" oninput="document.getElementById('range_value').innerText=this.value" onchange="go()"/>
-                <span id="range_value">0</span>
-            </div>
-        </form>
-    </div>
-    <div id="form_panel">
-    </div>
+        </div>
+        <div clsss="form_div_item" id="input_control">
+            <button id="button_next" type=button onclick="up()">次</button>
+            <button type=button onclick="down()">戻</button>
+            <label for="range">位置</label><input type="range" id="range" min="0" max="100" value="0" step="1" oninput="document.getElementById('range_value').innerText=this.value" onchange="go()"/>
+            <span id="range_value">0</span>
+        </div>
+    </form>
+</div>
+<div class="body_item_div" id="form_panel_outer">
+    <div class="body_item_div" id="form_panel"></div>
 </div>
 </body>
 <script src="score.js"></script>
