@@ -1,4 +1,10 @@
-.form_item_div {
+div#input_pane {
+    width : 100% ;
+}
+div#input_part {
+    width : 100% ;
+}
+div#input_control {
     width : 100% ;
 }
 div#input_part_comment {
