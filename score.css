@@ -1,38 +1,81 @@
-html{
+html {
     height: 100%;
 }
-body{
+
+body {
     height: 100%;
     margin: 0;
     display: flex;
     flex-direction: column;
 }
-div#form_div{
+
+div#form_div {
     flex: 0 0 auto;
 }
+
 div#input_pane {
-    width : 100% ;
+    width: 100%;
 }
+
 div#input_part {
-    width : 100% ;
+    width: 100%;
 }
+
 div#input_control {
-    width : 100% ;
+    width: 100%;
 }
+
 div#input_part_comment {
-    width : 100% ;
+    width: 100%;
 }
+
 textarea#student_comment {
-    width: 100% ;
+    width: 100%;
 }
+
 div#student_comment {
-    width : 100% ;
+    width: 100%;
 }
+
 div#form_panel {
     flex: 1 1 auto;
     border: solid thin black;
     /*width: 400px;*/
     height: 500px;
     overflow-y: scroll;
-    resize : vertical;
+    resize: vertical;
+}
+
+span.student_info_item {
+    padding-right: 15pt;
+}
+
+label {
+    margin-right: 10pt;
+}
+
+input#student_mark {
+    margin-right: 15pt;
+}
+
+input#student_score {
+    margin-right: 15pt;
+}
+
+p:hover {
+    color: Highlight;
+}
+
+@media (prefers-color-scheme: dark) {
+    body {
+        background: #333;
+        color: white;
+    }
+}
+
+@media (prefers-color-scheme: light) {
+    body {
+        background: #ddd;
+        color: black;
+    }
 }

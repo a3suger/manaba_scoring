@@ -6,6 +6,16 @@
     <link rel="stylesheet" type="text/css" href="score.css">
 </head>
 <body>
+<dialog id="answer_dialog" draggable="true">
+    <div>
+        <label for="answer_dialog_select">番号</label>
+        <select id="answer_dialog_select">
+            <option hidden>select</option>
+        </select>
+        <span id="answer_dialog_number">0</span>
+        <button id="answer_button_close">cancel</button>
+    </div>
+</dialog>
 <div id="form_div">
     <form id="form">
         <div id="input_pane">
@@ -25,11 +35,15 @@
                 <div><textarea id="student_comment" rows=5></textarea></div>
             </div>
         </div>
-        <div  id="input_control">
+        <div id="input_control">
             <button id="button_next" type=button onclick="up()">次</button>
+            <button id="button_reset" type=button onclick="resetdata()">取消</button>
             <button type=button onclick="down()">戻</button>
-            <label for="range">位置</label><input type="range" id="range" min="0" max="100" value="0" step="1" oninput="document.getElementById('range_value').innerText=this.value" onchange="go()"/>
+            <label for="range">位置</label><input type="range" id="range" min="0" max="100" value="0" step="1"
+                                                oninput="document.getElementById('range_value').innerText=this.value"
+                                                onchange="go()"/>
             <span id="range_value">0</span>
+            <button type=button id="button_reset_pannel" onclick="resetpanel()">並替</button>
         </div>
     </form>
 </div>

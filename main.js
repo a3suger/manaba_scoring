@@ -1,4 +1,4 @@
-const {app, Menu, MenuItem, dialog, ipcMain, BrowserWindow} = require('electron')
+const {app, Menu, MenuItem, dialog, ipcMain, BrowserWindow, nativeTheme} = require('electron')
 const path = require('path');
 const fs = require('fs');
 const Store = require('electron-store');
@@ -25,6 +25,8 @@ const DEFAULT_POS = {
 let pdf_win;
 const PDFWindow = require('electron-pdf-window');
 
+let dark_menu;
+
 function createPDFWindow() {
     if (pdf_win === undefined) {
         const pos = store.get('pdf.window.pos') || [DEFAULT_POS.x, DEFAULT_POS.y];
@@ -43,6 +45,34 @@ function createPDFWindow() {
             pdf_win.hide();
             e.preventDefault();
         })
+        const pdf_contents = pdf_win.webContents
+        pdf_contents.on('did-finish-load', () => {
+            if (pdf_contents.dark_css_key)
+                delete pdf_contents.dark_css_key
+            set_pdf_dark(pdf_contents, dark_menu.checked)
+        })
+    }
+}
+
+function set_pdf_dark(pdf_contents, flag) {
+    if (flag) {
+        // dark mode に設定する
+        if (!pdf_contents.dark_css_key) {
+            // 設定がないので設定する
+            const dark_css = 'embed {filter: brightness(0.91) grayscale(0.95) invert(0.95) sepia(0.55) hue-rotate(180deg);}'
+            pdf_contents.insertCSS(dark_css).then((key) => {
+                pdf_contents.dark_css_key = key
+            })
+            //          ':root[theme="normal"] embed {filter: brightness(1) grayscale(0) invert(0) sepia(0) hue-rotate(0deg);}'
+        }
+    } else {
+        // dark mode を解除する
+        if (pdf_contents.dark_css_key) {
+            // すでに設定がされているので解除する．
+            pdf_contents.removeInsertedCSS(pdf_contents.dark_css_key).then(() => {
+                delete pdf_contents.dark_css_key
+            })
+        }
     }
 }
 
@@ -90,9 +120,17 @@ function app_main() {
             search_main_openDialog(win.webContents)
         }
     }));
-    editMenu.append(new MenuItem({type: "separator"}));
 
     mainMenu.append(new MenuItem({role: 'editMenu', submenu: editMenu}));
+
+    const viewMenu = new Menu();
+    dark_menu = new MenuItem({
+        label: 'DarkMode', type: 'checkbox', click: (menuItem) => {
+            set_pdf_dark(pdf_win.webContents, menuItem.checked)
+        }
+    })
+    viewMenu.append(dark_menu);
+    mainMenu.append(new MenuItem({role: 'viewMenu', submenu: viewMenu}));
 
     const winMenu = new Menu();
     winMenu.append(new MenuItem({'role': 'minimize'}));
@@ -160,6 +198,7 @@ function createMainWindow(filepath) {
         showScoreWindow(win, filepath)
     }
     search_main_setup(win.webContents)
+    nativeTheme.themeSource = 'dark'
 
     function _local_save() {
         store.set('main.window.pos', main_win.getPosition())  // ウィンドウの座標を記録
@@ -305,7 +344,7 @@ function showScoreWindow(win, filepath) {
     createPDFWindow();
 
     ipcMain.once('req_init_data', (e) => {
-        e.sender.send('rep_init_data', data)
+        //e.sender.send('rep_init_data', data)
         let row_data;
         for (let i = data['min']; i <= data['max']; i++) {
             row_data = mfile.get_row_data(i);
@@ -315,6 +354,7 @@ function showScoreWindow(win, filepath) {
         row_data = mfile.get_row_data(data['min']);
         row_data['flag'] = true;
         e.sender.send('rep_row_data', row_data);
+        e.sender.send('rep_init_data', data)
         open_student_file(BrowserWindow.fromWebContents(e.sender));
     });
 

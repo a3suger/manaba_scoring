@@ -1,6 +1,6 @@
 class Answers {
     constructor() {
-        this.dict = [];
+        this.dict = Object();
     }
 
     makeString(array) {
@@ -13,6 +13,41 @@ class Answers {
         return tmp_array.join(':');
     }
 
+
+    reset_form_pannel() {
+        const pannel = document.getElementById("form_panel")
+        pannel.innerHTML = ''
+
+        const keys = Object.keys(this.dict)
+        keys.sort((a, b) => {
+            return this.dict[b].length - this.dict[a].length
+        })
+        let k;
+        for (k of keys) {
+            this._append_element_into_panel(k)
+        }
+    }
+
+    _append_element_into_panel(text) {
+        const element = document.createElement("p");
+        element.id = text;
+        element.innerText = text;
+        element.className = 'panel_item'
+        element.onclick = () => {
+            const array = element.innerText.split(':');
+            document.getElementById("student_score").value = array[0];
+            document.getElementById("student_mark").value = array[1];
+            document.getElementById("student_comment").value = array[2];
+        }
+        element.ondblclick = up;
+        element.oncontextmenu = () => {
+            answer_dialog_make_options(element.innerText)
+            document.getElementById('answer_dialog').show()
+
+        }
+        document.getElementById("form_panel").appendChild(element);
+    }
+
     append(array, index) {
         const key = this.makeString(array);
         if (key === '::') return;
@@ -22,21 +57,18 @@ class Answers {
                 item.push(index)
         } else {
             this.dict[key] = [index]
-            // ここに追加された時の処理を追記する。
-            const element = document.createElement("p");
-            element.id = key;
-            element.innerText = key;
-            element.className = 'panel_item'
-            element.onclick = () => {
-                const array = element.innerText.split(':');
-                document.getElementById("student_score").value = array[0];
-                document.getElementById("student_mark").value = array[1];
-                document.getElementById("student_comment").value = array[2];
-            }
-            element.ondblclick = up;
-            document.getElementById("form_panel").appendChild(element);
+            this._append_element_into_panel(key)
         }
     }
+
+    get_item(key) {
+        if (key in this.dict) {
+            return this.dict[key]
+        } else {
+            return undefined
+        }
+    }
+
 }
 
 let rowIndex;
@@ -56,6 +88,13 @@ function down() {
     send_data(rowIndex, (rowIndex - 1));
 }
 
+function resetdata() {
+    send_data(-1, rowIndex)
+}
+
+function resetpanel() {
+    answers.reset_form_pannel()
+}
 
 // メインに送る時
 // array をつくる（index + ３つの要素, next )
@@ -108,6 +147,36 @@ function set_form_data(dict) {
 
 //
 //
+//
+function answer_dialog_setup() {
+    document.getElementById('answer_dialog_select').addEventListener('change', () => {
+        const elm_select = document.getElementById('answer_dialog_select')
+        const select_index = elm_select.selectedIndex;
+        let next = parseInt(elm_select.options[select_index].value)
+        if (isNaN(next)) next = rowIndex
+
+        send_data(rowIndex, next)
+    })
+    document.getElementById('answer_button_close').addEventListener('click', () => {
+        document.getElementById('answer_dialog').close()
+    })
+}
+
+function answer_dialog_make_options(key) {
+    let answer_item = answers.get_item(key)
+    if (answer_item === undefined) return
+    document.getElementById('answer_dialog_number').innerText = String(answer_item.length)
+    let elm_select = document.getElementById('answer_dialog_select')
+    elm_select.innerHTML = '<option hidden>select</option>'
+    answer_item.forEach(function (item) {
+        let elm_option = document.createElement('option')
+        elm_option.innerText = item
+        elm_select.appendChild(elm_option)
+    })
+}
+
+//
+//
 // renderer への通知
 // 1) dialog の open
 // 2) dialog への　設定（全体の数と，現在の位置）
@@ -131,7 +200,7 @@ function search_render_setup() {
     // 1) document の中に dialog 要素をつくる．
     const elem_span = document.createElement('span')
     elem_span.innerHTML = `
-<dialog id="search_dialog">
+<dialog id="search_dialog" draggable="true">
   <div>
     <input type="search" id="search_text" value="" placeholder="Please input word" style="width:150px;">
     <span id="search_label_position">0/0</span>
@@ -177,8 +246,10 @@ function search_render_setup() {
 window.onload = () => {
     answers = new Answers();
 
+    answer_dialog_setup()
 
     window.ipcRenderer.once('rep_init_data', (e, init) => {
+        resetpanel()
         rowIndex = init['min'];
         document.getElementsByTagName("title")[0].innerText = `${init['content']}@${init['course']}`;
         const range = document.getElementById("range");

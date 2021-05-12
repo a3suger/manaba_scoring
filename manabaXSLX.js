@@ -120,12 +120,17 @@ module.exports = class Manaba {
     set_row_data(row_data) {
         const score = parseInt(row_data['student_score']);
         const row_index = rowMin - 1 + row_data['index'];
-        const sheet = this.workbook.Sheets["Sheet1"];
-        if (!isNaN(score))
-            sheet[XLSX.utils.encode_cell({r: row_index, c: colStudentScore})] = {t: 'n', v: score};
-        sheet[XLSX.utils.encode_cell({r: row_index, c: colStudentMark})] = {t: 's', v: row_data['student_mark']};
-        sheet[XLSX.utils.encode_cell({r: row_index, c: colStudentComment})] = {t: 's', v: row_data['student_comment']};
-        XLSX.writeFile(this.workbook, this.fullpath, {booktype: "biff8"});
+        if ((row_index >= rowMin) && (row_index <= this.rowMax)) {
+            const sheet = this.workbook.Sheets["Sheet1"];
+            if (!isNaN(score))
+                sheet[XLSX.utils.encode_cell({r: row_index, c: colStudentScore})] = {t: 'n', v: score};
+            sheet[XLSX.utils.encode_cell({r: row_index, c: colStudentMark})] = {t: 's', v: row_data['student_mark']};
+            sheet[XLSX.utils.encode_cell({r: row_index, c: colStudentComment})] = {
+                t: 's',
+                v: row_data['student_comment']
+            };
+            XLSX.writeFile(this.workbook, this.fullpath, {booktype: "biff8"});
+        }
         let next = row_data['next'];
         if (next < 1) next = 1;
         if (next > this.rowMax - rowMin + 1) next = this.rowMax - rowMin + 1;
