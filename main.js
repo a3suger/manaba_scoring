@@ -18,6 +18,8 @@ const DEFAULT_POS = {
     x: 0,
     y: 0
 }
+// ダークモードのデフォルト
+const DEFAULT_DARK_MODE = false
 
 
 // https://qiita.com/umamichi/items/8781e426e9cd4a88961b
@@ -125,10 +127,24 @@ function app_main() {
 
     const viewMenu = new Menu();
     dark_menu = new MenuItem({
-        label: 'DarkMode', type: 'checkbox', click: (menuItem) => {
+        label: 'DarkMode', type: 'checkbox',
+        checked: store.get('dark_mode') || DEFAULT_DARK_MODE,
+        click: (menuItem) => {
             set_pdf_dark(pdf_win.webContents, menuItem.checked)
+            if (menuItem.checked) {
+                nativeTheme.themeSource = 'dark'
+            } else {
+                nativeTheme.themeSource = 'system'
+            }
+            store.set('dark_mode',menuItem.checked)
         }
     })
+    if (dark_menu.checked) {
+        nativeTheme.themeSource = 'dark'
+    } else {
+        nativeTheme.themeSource = 'system'
+    }
+
     viewMenu.append(dark_menu);
     mainMenu.append(new MenuItem({role: 'viewMenu', submenu: viewMenu}));
 
@@ -198,7 +214,6 @@ function createMainWindow(filepath) {
         showScoreWindow(win, filepath)
     }
     search_main_setup(win.webContents)
-    nativeTheme.themeSource = 'dark'
 
     function _local_save() {
         store.set('main.window.pos', main_win.getPosition())  // ウィンドウの座標を記録

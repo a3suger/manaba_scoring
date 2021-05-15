@@ -69,13 +69,17 @@ p:hover {
 @media (prefers-color-scheme: dark) {
     body {
         background: #333;
-        color: white;
+        color: lightgrey;
+    }
+    input,select,textarea {
+        background-color: gray;
+        color: lightgrey;
     }
 }
 
-@media (prefers-color-scheme: light) {
+@media (prefers-color-scheme: no-preference) {
     body {
-        background: #ddd;
+        background: #fff;
         color: black;
     }
 }
