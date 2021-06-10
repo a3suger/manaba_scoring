@@ -2,10 +2,11 @@
   "name": "manaba_scoring",
   "version": "1.0.0",
   "description": "",
-  "main": "main.js",
+  "main": "src/main.js",
   "scripts": {
     "run": "electron .",
-    "build": "electron-packager . --overwrite --icon=scoring ",
+    "build": "electron-packager . --overwrite --platform=darwin,win32 ",
+    "build_win": "electron-packager . --overwrite --platform=win32 ",
 
     "test": "echo \"Error: no test specified\" && exit 1"
   },

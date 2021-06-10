@@ -113,6 +113,7 @@ function app_main() {
     mainMenu.append(new MenuItem({role: 'fileMenu', submenu: fileMenu}));
 
     const editMenu = new Menu();
+    editMenu.append(new MenuItem({role: 'undo'}));
     editMenu.append(new MenuItem({role: 'cut'}));
     editMenu.append(new MenuItem({role: 'copy'}));
     editMenu.append(new MenuItem({role: 'paste'}));
