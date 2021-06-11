@@ -1,23 +1,50 @@
 {
   "name": "manaba_scoring",
   "version": "1.0.0",
-  "description": "",
-  "main": "src/main.js",
+  "description": "Manaba Scoring Support Software",
+  "main": "main.js",
   "scripts": {
-    "run": "electron .",
-    "build": "electron-packager . --overwrite --platform=darwin,win32 ",
-    "build_win": "electron-packager . --overwrite --platform=win32 ",
-
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "electron-builder -mw",
+    "run": "electron ./src"
   },
-  "keywords": ["manaba", "report", "scoring"],
+  "build": {
+    "appId": "jp.ac.tsukuba.cc",
+    "directories": {
+      "app": "./src"
+    },
+    "mac": {
+      "icon": "assets/mac/scoring.icns",
+      "target": [
+        "dmg"
+      ]
+    },
+    "win": {
+      "icon": "assets/win/scoring.ico",
+      "target": "portable"
+    },
+    "nsis":{
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  },
+  "keywords": [
+    "manaba",
+    "report",
+    "scoring"
+  ],
   "author": "Akira SATO<akira@cc.tsukuba.ac.jp>",
   "license": "MIT",
   "dependencies": {
     "electron": "^12.0.5",
+    "electron-builder": "^22.10.5",
     "electron-packager": "^15.2.0",
     "electron-pdf-window": "^1.0.12",
     "electron-store": "^8.0.0",
     "xlsx": "^0.16.9"
+  },
+  "devDependencies": {
+    "electron": "^12.0.5",
+    "electron-builder": "^22.10.5"
   }
 }

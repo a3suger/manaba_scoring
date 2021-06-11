@@ -257,15 +257,15 @@ function selectfile(_win, options) {
 app.whenReady().then(app_main)
 
 // 全てのウィンドウが閉じられた時に終了します。
-// app.on('window-all-closed', () => {
+// src.on('window-all-closed', () => {
 //     // macOSでは、ユーザが Cmd + Q で明示的に終了するまで、
 //     // アプリケーションとそのメニューバーは有効なままにするのが一般的です。
 //     if (process.platform !== 'darwin') {
-//         app.quit()
+//         src.quit()
 //     }
 // })
 //
-// app.on('activate', () => {
+// src.on('activate', () => {
 //     // macOSでは、ユーザがドックアイコンをクリックしたとき、
 //     // そのアプリのウインドウが無かったら再作成するのが一般的です。
 //     if (BrowserWindow.getAllWindows().length === 0) {

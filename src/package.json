@@ -1,0 +1,21 @@
+{
+  "name": "manaba_scoring",
+  "version": "1.0.0",
+  "description": "Manaba Scoring Support Software",
+  "main": "main.js",
+  "scripts": {
+    "run": "electron ."
+  },
+  "keywords": [
+    "manaba",
+    "report",
+    "scoring"
+  ],
+  "author": "Akira SATO<akira@cc.tsukuba.ac.jp>",
+  "license": "MIT",
+  "dependencies": {
+    "electron-pdf-window": "^1.0.12",
+    "electron-store": "^8.0.0",
+    "xlsx": "^0.16.9"
+  }
+}
